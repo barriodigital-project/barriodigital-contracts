@@ -15,6 +15,7 @@ paths:
       summary: Listar tipos de trámite
       security:
         - bearerAuth: []
+
       responses:
         '200':
           description: Lista de tipos de trámite
@@ -29,17 +30,18 @@ paths:
         '500':
           description: Error interno
 
-
     post:
       summary: Crear tipo de trámite
       security:
         - bearerAuth: []
+
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateProcedureType'
+
       responses:
         '201':
           description: Tipo de trámite creado
@@ -82,7 +84,6 @@ paths:
         '404':
           description: Tipo de trámite no encontrado
 
-
     put:
       summary: Actualizar tipo de trámite
       security:
@@ -114,6 +115,34 @@ paths:
           description: Solicitud inválida
         '403':
           description: Sin permisos
+        '404':
+          description: Tipo de trámite no encontrado
+        '500':
+          description: Error interno
+
+
+  /api/v1/procedure-types/{id}/availability:
+
+    get:
+      summary: Consultar disponibilidad de cupo
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Disponibilidad consultada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
         '404':
           description: Tipo de trámite no encontrado
 
@@ -155,41 +184,13 @@ paths:
           description: Cupo no disponible
 
 
-  /api/v1/procedure-types/{id}/availability:
-
-    get:
-      summary: Consultar disponibilidad de un tipo de trámite
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-
-      responses:
-        '200':
-          description: Disponibilidad consultada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AvailabilityResponse'
-        '404':
-          description: Tipo de trámite no encontrado
-
-
 components:
 
   securitySchemes:
-
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
 
   schemas:
 
@@ -200,28 +201,17 @@ components:
         - description
         - dailyQuota
       properties:
-
         name:
           type: string
-          example: Reparación de luminaria
-
         description:
           type: string
-          example: Solicitud para reportar luminarias públicas defectuosas
-
         dailyQuota:
           type: integer
           minimum: 0
-          example: 40
-
         requirements:
           type: array
           items:
             type: string
-          example:
-            - Dirección del lugar
-            - Descripción del problema
-
 
     UpdateProcedureType:
       type: object
@@ -230,76 +220,57 @@ components:
         - description
         - dailyQuota
       properties:
-
         name:
           type: string
-
         description:
           type: string
-
         dailyQuota:
           type: integer
           minimum: 0
-
         requirements:
           type: array
           items:
             type: string
-
 
     UpdateQuota:
       type: object
       required:
         - availableQuota
       properties:
-
         availableQuota:
           type: integer
           minimum: 0
 
-
     ProcedureType:
       type: object
       properties:
-
         id:
           type: string
           format: uuid
-
         name:
           type: string
-
         description:
           type: string
-
         dailyQuota:
           type: integer
-
         availableQuota:
           type: integer
-
         requirements:
           type: array
           items:
             type: string
-
         active:
           type: boolean
-
 
     AvailabilityResponse:
       type: object
       properties:
-
         procedureTypeId:
           type: string
           format: uuid
-
         dailyQuota:
           type: integer
-
         availableQuota:
           type: integer
-
         available:
           type: boolean

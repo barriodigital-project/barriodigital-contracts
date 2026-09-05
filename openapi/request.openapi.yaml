@@ -1,86 +1,45 @@
-openapi: 3.1.0
+openapi: 3.0.3
 
 info:
   title: BarrioDigital Requests API
   version: 1.0.0
-  description: >
-    API del microservicio ms-barriodigital-requests.
-    Gestiona el ciclo de vida de los trámites comunales
-    de la plataforma BarrioDigital.
 
 servers:
   - url: http://localhost:8081
-    description: Desarrollo local
-
-tags:
-  - name: Requests
-    description: Gestión de trámites comunales
 
 paths:
 
   /api/v1/requests:
 
     post:
-      tags:
-        - Requests
-      summary: Crear un trámite
-      operationId: createRequest
-
+      summary: Crear trámite
       security:
         - bearerAuth: []
-
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateRequestRequest'
-            examples:
-              default:
-                value:
-                  procedureTypeId: "550e8400-e29b-41d4-a716-446655440001"
-                  description: "Luminaria pública sin funcionamiento"
-                  address:
-                    street: "Av. Ejemplo"
-                    number: "123"
-                    commune: "Recoleta"
-
+              $ref: '#/components/schemas/CreateRequest'
       responses:
-
         '201':
-          description: Trámite creado correctamente
+          description: Trámite creado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestResponse'
-
+                $ref: '#/components/schemas/Request'
         '400':
-          $ref: '#/components/responses/BadRequest'
-
+          description: Solicitud inválida
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-
+          description: No autenticado
         '500':
-          $ref: '#/components/responses/InternalServerError'
-
+          description: Error interno
 
     get:
-      tags:
-        - Requests
-      summary: Buscar trámites
-      operationId: findRequests
-
+      summary: Listar trámites
       security:
         - bearerAuth: []
-
       parameters:
-
         - name: status
           in: query
           required: false
@@ -94,330 +53,152 @@ paths:
             type: string
             format: uuid
 
-        - name: from
-          in: query
-          description: Fecha inicial del filtro
-          required: false
-          schema:
-            type: string
-            format: date
-
-        - name: to
-          in: query
-          description: Fecha final del filtro
-          required: false
-          schema:
-            type: string
-            format: date
-
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-
       responses:
-
         '200':
-          description: Página de trámites
+          description: Lista de trámites
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestPageResponse'
-
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
+          description: No autenticado
         '403':
-          $ref: '#/components/responses/Forbidden'
-
+          description: Sin permisos
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno
 
 
   /api/v1/requests/me:
 
     get:
-      tags:
-        - Requests
-      summary: Obtener los trámites del usuario autenticado
-      description: >
-        Obtiene los trámites asociados al usuario autenticado.
-        La identidad se obtiene desde el JWT y no desde un userId
-        entregado por el frontend.
-      operationId: findMyRequests
-
+      summary: Obtener mis trámites
       security:
         - bearerAuth: []
 
-      parameters:
-
-        - name: status
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/RequestStatus'
-
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-
       responses:
-
         '200':
-          description: Trámites pertenecientes al usuario autenticado
+          description: Trámites del usuario autenticado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestPageResponse'
-
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
+          description: No autenticado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno
 
 
-  /api/v1/requests/{requestId}:
+  /api/v1/requests/{id}:
 
     get:
-      tags:
-        - Requests
-      summary: Obtener un trámite por ID
-      operationId: getRequestById
-
+      summary: Obtener trámite
       security:
         - bearerAuth: []
 
       parameters:
-
-        - $ref: '#/components/parameters/RequestId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
 
       responses:
-
         '200':
           description: Trámite encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestResponse'
-
+                $ref: '#/components/schemas/Request'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
+          description: No autenticado
         '403':
-          $ref: '#/components/responses/Forbidden'
-
+          description: Sin permisos
         '404':
-          $ref: '#/components/responses/NotFound'
-
+          description: Trámite no encontrado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno
 
 
-  /api/v1/requests/{requestId}/status:
+  /api/v1/requests/{id}/status:
 
     patch:
-      tags:
-        - Requests
-      summary: Cambiar el estado de un trámite
-      description: >
-        Realiza una transición de estado aplicando las reglas
-        de negocio del ciclo de vida del trámite.
-
-        Un trámite no puede pasar a EN_TERRENO si previamente
-        no ha sido admitido.
-
-      operationId: updateRequestStatus
-
+      summary: Cambiar estado de trámite
       security:
         - bearerAuth: []
 
       parameters:
-
-        - $ref: '#/components/parameters/RequestId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
 
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateRequestStatusRequest'
-            examples:
-
-              admit:
-                value:
-                  status: ADMITIDO
-
-              resolve:
-                value:
-                  status: RESUELTO
-                  reason: "Trabajo realizado correctamente"
-
-              reject:
-                value:
-                  status: RECHAZADO
-                  reason: "Solicitud fuera de competencia municipal"
+              $ref: '#/components/schemas/UpdateRequestStatus'
 
       responses:
-
         '200':
-          description: Estado actualizado correctamente
+          description: Estado actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestResponse'
-
+                $ref: '#/components/schemas/Request'
         '400':
-          $ref: '#/components/responses/BadRequest'
-
+          description: Solicitud inválida
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
+          description: No autenticado
         '403':
-          $ref: '#/components/responses/Forbidden'
-
+          description: Sin permisos
         '404':
-          $ref: '#/components/responses/NotFound'
-
+          description: Trámite no encontrado
         '409':
-          description: >
-            La transición solicitada entra en conflicto con el
-            estado actual o con una regla de negocio.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-
+          description: Cambio de estado no permitido
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno
 
 
 components:
 
   securitySchemes:
-
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT emitido por Amazon Cognito
-
-
-  parameters:
-
-    RequestId:
-      name: requestId
-      in: path
-      required: true
-      description: Identificador interno del trámite
-      schema:
-        type: string
-        format: uuid
-
 
   schemas:
 
-    CreateRequestRequest:
+    CreateRequest:
       type: object
-      additionalProperties: false
       required:
         - procedureTypeId
         - description
         - address
       properties:
-
         procedureTypeId:
           type: string
           format: uuid
-          description: Identificador del tipo de trámite
-
         description:
           type: string
-          minLength: 10
-          maxLength: 2000
-          description: Descripción entregada por el usuario
-
         address:
-          $ref: '#/components/schemas/Address'
+          type: string
 
-
-    UpdateRequestStatusRequest:
+    UpdateRequestStatus:
       type: object
-      additionalProperties: false
       required:
         - status
       properties:
-
         status:
           $ref: '#/components/schemas/RequestStatus'
-
-        reason:
-          type:
-            - string
-            - "null"
-          maxLength: 1000
-          description: >
-            Motivo asociado al cambio de estado cuando corresponda.
-
-
-    Address:
-      type: object
-      additionalProperties: false
-      required:
-        - street
-        - number
-        - commune
-      properties:
-
-        street:
-          type: string
-          minLength: 1
-          maxLength: 150
-
-        number:
-          type: string
-          minLength: 1
-          maxLength: 20
-
-        commune:
-          type: string
-          minLength: 1
-          maxLength: 100
-
-        additionalInfo:
-          type:
-            - string
-            - "null"
-          maxLength: 250
-
 
     RequestStatus:
       type: string
@@ -429,214 +210,32 @@ components:
         - RESUELTO
         - RECHAZADO
 
-
-    RequestResponse:
+    Request:
       type: object
-      additionalProperties: false
-      required:
-        - id
-        - trackingCode
-        - procedureTypeId
-        - description
-        - address
-        - status
-        - createdAt
-        - updatedAt
       properties:
-
         id:
           type: string
           format: uuid
-
         trackingCode:
           type: string
-          description: Código visible utilizado para seguimiento
-          examples:
-            - REQ-2026-000001
-
         procedureTypeId:
           type: string
           format: uuid
-
+        citizenId:
+          type: string
         description:
           type: string
-
         address:
-          $ref: '#/components/schemas/Address'
-
+          type: string
         status:
           $ref: '#/components/schemas/RequestStatus'
-
         assignedCrewId:
-          type:
-            - string
-            - "null"
+          type: string
           format: uuid
-
+          nullable: true
         createdAt:
           type: string
           format: date-time
-
         updatedAt:
           type: string
           format: date-time
-
-        resolvedAt:
-          type:
-            - string
-            - "null"
-          format: date-time
-
-
-    RequestSummary:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - trackingCode
-        - procedureTypeId
-        - status
-        - createdAt
-      properties:
-
-        id:
-          type: string
-          format: uuid
-
-        trackingCode:
-          type: string
-
-        procedureTypeId:
-          type: string
-          format: uuid
-
-        status:
-          $ref: '#/components/schemas/RequestStatus'
-
-        createdAt:
-          type: string
-          format: date-time
-
-        updatedAt:
-          type: string
-          format: date-time
-
-
-    RequestPageResponse:
-      type: object
-      additionalProperties: false
-      required:
-        - content
-        - page
-        - size
-        - totalElements
-        - totalPages
-      properties:
-
-        content:
-          type: array
-          items:
-            $ref: '#/components/schemas/RequestSummary'
-
-        page:
-          type: integer
-          minimum: 0
-
-        size:
-          type: integer
-          minimum: 1
-
-        totalElements:
-          type: integer
-          format: int64
-          minimum: 0
-
-        totalPages:
-          type: integer
-          minimum: 0
-
-
-    ErrorResponse:
-      type: object
-      additionalProperties: false
-      required:
-        - code
-        - message
-        - timestamp
-        - traceId
-      properties:
-
-        code:
-          type: string
-          examples:
-            - REQUEST_NOT_FOUND
-
-        message:
-          type: string
-          examples:
-            - El trámite solicitado no existe.
-
-        timestamp:
-          type: string
-          format: date-time
-
-        traceId:
-          type: string
-          description: Identificador utilizado para trazabilidad distribuida
-
-        details:
-          type: array
-          items:
-            type: string
-
-
-  responses:
-
-    BadRequest:
-      description: Solicitud inválida
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-
-    Unauthorized:
-      description: El usuario no se encuentra autenticado
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-
-    Forbidden:
-      description: El usuario no posee permisos para realizar la operación
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-
-    NotFound:
-      description: Recurso no encontrado
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-
-    UnprocessableEntity:
-      description: >
-        La solicitud es válida sintácticamente, pero no puede
-        procesarse debido a una regla de negocio.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-
-    InternalServerError:
-      description: Error interno no controlado
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'

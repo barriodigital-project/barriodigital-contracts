@@ -3,37 +3,28 @@ asyncapi: 2.6.0
 info:
   title: BarrioDigital RabbitMQ API
   version: 1.0.0
-  description: >
-    Contrato de mensajería asíncrona utilizado por BarrioDigital
-    para procesamiento de notificaciones y generación de documentos.
 
 servers:
-
   local:
     url: localhost:5672
     protocol: amqp
-    description: RabbitMQ local
 
 channels:
 
-  q.cmd.email:
-
-    description: Cola utilizada para solicitudes de envío de notificaciones.
+  q.cmd.notification:
 
     publish:
-      summary: Publicar solicitud de notificación
+      summary: Publicar tarea de notificación
       message:
         $ref: '#/components/messages/NotificationCommand'
 
 
-  q.cmd.certificate:
-
-    description: Cola utilizada para solicitudes de generación de documentos.
+  q.cmd.crew:
 
     publish:
-      summary: Publicar solicitud de generación de documento
+      summary: Publicar ticket o aviso para cuadrilla
       message:
-        $ref: '#/components/messages/DocumentCommand'
+        $ref: '#/components/messages/CrewCommand'
 
 
 components:
@@ -41,17 +32,12 @@ components:
   messages:
 
     NotificationCommand:
-      name: NotificationCommand
-      title: Comando de notificación
       payload:
         $ref: '#/components/schemas/NotificationCommandPayload'
 
-
-    DocumentCommand:
-      name: DocumentCommand
-      title: Comando de generación de documento
+    CrewCommand:
       payload:
-        $ref: '#/components/schemas/DocumentCommandPayload'
+        $ref: '#/components/schemas/CrewCommandPayload'
 
 
   schemas:
@@ -65,7 +51,6 @@ components:
         - timestamp
 
       properties:
-
         requestId:
           type: string
           format: uuid
@@ -80,36 +65,38 @@ components:
 
         recipient:
           type: string
-          description: Destinatario de la notificación
-          example: vecino@correo.cl
 
         message:
           type: string
-          example: Su trámite fue admitido correctamente.
 
         timestamp:
           type: string
           format: date-time
 
 
-    DocumentCommandPayload:
+    CrewCommandPayload:
       type: object
       required:
         - requestId
-        - documentType
+        - crewId
+        - message
         - timestamp
 
       properties:
-
         requestId:
           type: string
           format: uuid
 
-        documentType:
+        crewId:
           type: string
-          enum:
-            - REQUEST_RECEIPT
-            - RESOLUTION_CERTIFICATE
+          format: uuid
+
+        message:
+          type: string
+
+        scheduledAt:
+          type: string
+          format: date-time
 
         timestamp:
           type: string

@@ -3,25 +3,15 @@ asyncapi: 2.6.0
 info:
   title: BarrioDigital Kafka API
   version: 1.0.0
-  description: >
-    Contrato de eventos de dominio publicados por
-    ms-barriodigital-requests y consumidos por
-    ms-barriodigital-audit y ms-barriodigital-report.
 
 servers:
-
   local:
     url: localhost:9092
     protocol: kafka
-    description: Kafka local
 
 channels:
 
   requests.events:
-
-    description: >
-      Tópico principal de eventos relacionados con
-      el ciclo de vida de los trámites.
 
     publish:
       summary: Publicar evento de trámite
@@ -34,8 +24,6 @@ components:
   messages:
 
     RequestEvent:
-      name: RequestEvent
-      title: Evento de trámite
       payload:
         $ref: '#/components/schemas/RequestEventPayload'
 

@@ -30,7 +30,6 @@ paths:
         '500':
           description: Error interno
 
-
     post:
       summary: Crear cuadrilla
       security:
@@ -52,44 +51,16 @@ paths:
                 $ref: '#/components/schemas/Crew'
         '400':
           description: Solicitud inválida
-        '401':
-          description: No autenticado
         '403':
           description: Sin permisos
         '500':
           description: Error interno
 
 
-  /api/v1/crews/{id}:
-
-    get:
-      summary: Obtener cuadrilla
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-
-      responses:
-        '200':
-          description: Cuadrilla encontrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Crew'
-        '404':
-          description: Cuadrilla no encontrada
-
-
   /api/v1/crew-assignments:
 
     post:
-      summary: Asignar una cuadrilla a un trámite
+      summary: Asignar cuadrilla a un trámite
       security:
         - bearerAuth: []
 
@@ -115,7 +86,6 @@ paths:
           description: Cuadrilla no disponible
         '500':
           description: Error interno
-
 
     get:
       summary: Listar asignaciones
@@ -155,12 +125,10 @@ paths:
 components:
 
   securitySchemes:
-
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
 
   schemas:
 
@@ -169,30 +137,22 @@ components:
       required:
         - name
       properties:
-
         name:
           type: string
-          example: Cuadrilla Norte
-
         available:
           type: boolean
           default: true
 
-
     Crew:
       type: object
       properties:
-
         id:
           type: string
           format: uuid
-
         name:
           type: string
-
         available:
           type: boolean
-
 
     CreateCrewAssignment:
       type: object
@@ -200,40 +160,31 @@ components:
         - requestId
         - crewId
       properties:
-
         requestId:
           type: string
           format: uuid
-
         crewId:
           type: string
           format: uuid
-
         scheduledAt:
           type: string
           format: date-time
-
 
     CrewAssignment:
       type: object
       properties:
-
         id:
           type: string
           format: uuid
-
         requestId:
           type: string
           format: uuid
-
         crewId:
           type: string
           format: uuid
-
         scheduledAt:
           type: string
           format: date-time
-
         status:
           type: string
           enum:
