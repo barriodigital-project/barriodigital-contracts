@@ -1,0 +1,116 @@
+asyncapi: 2.6.0
+
+info:
+  title: BarrioDigital RabbitMQ API
+  version: 1.0.0
+  description: >
+    Contrato de mensajería asíncrona utilizado por BarrioDigital
+    para procesamiento de notificaciones y generación de documentos.
+
+servers:
+
+  local:
+    url: localhost:5672
+    protocol: amqp
+    description: RabbitMQ local
+
+channels:
+
+  q.cmd.email:
+
+    description: Cola utilizada para solicitudes de envío de notificaciones.
+
+    publish:
+      summary: Publicar solicitud de notificación
+      message:
+        $ref: '#/components/messages/NotificationCommand'
+
+
+  q.cmd.certificate:
+
+    description: Cola utilizada para solicitudes de generación de documentos.
+
+    publish:
+      summary: Publicar solicitud de generación de documento
+      message:
+        $ref: '#/components/messages/DocumentCommand'
+
+
+components:
+
+  messages:
+
+    NotificationCommand:
+      name: NotificationCommand
+      title: Comando de notificación
+      payload:
+        $ref: '#/components/schemas/NotificationCommandPayload'
+
+
+    DocumentCommand:
+      name: DocumentCommand
+      title: Comando de generación de documento
+      payload:
+        $ref: '#/components/schemas/DocumentCommandPayload'
+
+
+  schemas:
+
+    NotificationCommandPayload:
+      type: object
+      required:
+        - requestId
+        - type
+        - message
+        - timestamp
+
+      properties:
+
+        requestId:
+          type: string
+          format: uuid
+
+        type:
+          type: string
+          enum:
+            - REQUEST_CREATED
+            - REQUEST_ADMITTED
+            - REQUEST_RESOLVED
+            - REQUEST_REJECTED
+
+        recipient:
+          type: string
+          description: Destinatario de la notificación
+          example: vecino@correo.cl
+
+        message:
+          type: string
+          example: Su trámite fue admitido correctamente.
+
+        timestamp:
+          type: string
+          format: date-time
+
+
+    DocumentCommandPayload:
+      type: object
+      required:
+        - requestId
+        - documentType
+        - timestamp
+
+      properties:
+
+        requestId:
+          type: string
+          format: uuid
+
+        documentType:
+          type: string
+          enum:
+            - REQUEST_RECEIPT
+            - RESOLUTION_CERTIFICATE
+
+        timestamp:
+          type: string
+          format: date-time

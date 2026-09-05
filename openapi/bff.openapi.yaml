@@ -1,0 +1,610 @@
+openapi: 3.0.3
+
+info:
+  title: BarrioDigital BFF API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /api/v1/requests:
+
+    get:
+      summary: Listar trámites
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+
+        - name: procedureTypeId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Lista de trámites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
+
+        '401':
+          description: No autenticado
+
+        '403':
+          description: Sin permisos
+
+        '500':
+          description: Error interno
+
+
+    post:
+      summary: Crear trámite
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+
+      responses:
+        '201':
+          description: Trámite creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Request'
+
+        '400':
+          description: Solicitud inválida
+
+        '401':
+          description: No autenticado
+
+        '500':
+          description: Error interno
+
+
+  /api/v1/requests/me:
+
+    get:
+      summary: Obtener los trámites del usuario autenticado
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de trámites del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
+
+        '401':
+          description: No autenticado
+
+        '500':
+          description: Error interno
+
+
+  /api/v1/requests/{id}:
+
+    get:
+      summary: Obtener detalle de un trámite
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Trámite encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Request'
+
+        '404':
+          description: Trámite no encontrado
+
+
+  /api/v1/requests/{id}/status:
+
+    patch:
+      summary: Cambiar estado de un trámite
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - INGRESADO
+                    - ADMITIDO
+                    - EN_GESTION
+                    - EN_TERRENO
+                    - RESUELTO
+                    - RECHAZADO
+
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Request'
+
+        '404':
+          description: Trámite no encontrado
+
+        '409':
+          description: Cambio de estado no permitido
+
+
+  /api/v1/procedure-types:
+
+    get:
+      summary: Listar tipos de trámite
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de tipos de trámite
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProcedureType'
+
+        '401':
+          description: No autenticado
+
+        '500':
+          description: Error interno
+
+
+    post:
+      summary: Crear tipo de trámite
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProcedureType'
+
+      responses:
+        '201':
+          description: Tipo de trámite creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcedureType'
+
+        '400':
+          description: Solicitud inválida
+
+        '403':
+          description: Sin permisos
+
+
+  /api/v1/crews:
+
+    get:
+      summary: Listar cuadrillas
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de cuadrillas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Crew'
+
+        '401':
+          description: No autenticado
+
+
+  /api/v1/crew-assignments:
+
+    post:
+      summary: Asignar cuadrilla a un trámite
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCrewAssignment'
+
+      responses:
+        '201':
+          description: Cuadrilla asignada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrewAssignment'
+
+        '400':
+          description: Solicitud inválida
+
+        '404':
+          description: Cuadrilla no encontrada
+
+        '409':
+          description: Cuadrilla no disponible
+
+
+  /api/v1/audit/requests/{requestId}/timeline:
+
+    get:
+      summary: Obtener timeline de un trámite
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Timeline del trámite
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEvent'
+
+        '403':
+          description: Sin permisos
+
+        '404':
+          description: No se encontraron eventos
+
+
+  /api/v1/reports/kpis:
+
+    get:
+      summary: Obtener indicadores generales
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Indicadores generales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KpiResponse'
+
+        '403':
+          description: Sin permisos
+
+
+  /api/v1/reports/requests-by-status:
+
+    get:
+      summary: Obtener cantidad de trámites por estado
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Trámites agrupados por estado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestsByStatusResponse'
+
+        '403':
+          description: Sin permisos
+
+
+components:
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+
+  schemas:
+
+    CreateRequest:
+      type: object
+      required:
+        - procedureTypeId
+        - description
+        - address
+      properties:
+
+        procedureTypeId:
+          type: string
+          format: uuid
+
+        description:
+          type: string
+
+        address:
+          type: string
+
+
+    Request:
+      type: object
+      properties:
+
+        id:
+          type: string
+          format: uuid
+
+        trackingCode:
+          type: string
+
+        procedureTypeId:
+          type: string
+          format: uuid
+
+        citizenId:
+          type: string
+
+        description:
+          type: string
+
+        address:
+          type: string
+
+        status:
+          type: string
+          enum:
+            - INGRESADO
+            - ADMITIDO
+            - EN_GESTION
+            - EN_TERRENO
+            - RESUELTO
+            - RECHAZADO
+
+        assignedCrewId:
+          type: string
+          format: uuid
+          nullable: true
+
+        createdAt:
+          type: string
+          format: date-time
+
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    CreateProcedureType:
+      type: object
+      required:
+        - name
+        - description
+        - dailyQuota
+      properties:
+
+        name:
+          type: string
+
+        description:
+          type: string
+
+        dailyQuota:
+          type: integer
+
+        requirements:
+          type: array
+          items:
+            type: string
+
+
+    ProcedureType:
+      type: object
+      properties:
+
+        id:
+          type: string
+          format: uuid
+
+        name:
+          type: string
+
+        description:
+          type: string
+
+        dailyQuota:
+          type: integer
+
+        availableQuota:
+          type: integer
+
+        requirements:
+          type: array
+          items:
+            type: string
+
+        active:
+          type: boolean
+
+
+    Crew:
+      type: object
+      properties:
+
+        id:
+          type: string
+          format: uuid
+
+        name:
+          type: string
+
+        available:
+          type: boolean
+
+
+    CreateCrewAssignment:
+      type: object
+      required:
+        - requestId
+        - crewId
+      properties:
+
+        requestId:
+          type: string
+          format: uuid
+
+        crewId:
+          type: string
+          format: uuid
+
+        scheduledAt:
+          type: string
+          format: date-time
+
+
+    CrewAssignment:
+      type: object
+      properties:
+
+        id:
+          type: string
+          format: uuid
+
+        requestId:
+          type: string
+          format: uuid
+
+        crewId:
+          type: string
+          format: uuid
+
+        scheduledAt:
+          type: string
+          format: date-time
+
+        status:
+          type: string
+          enum:
+            - ASIGNADA
+            - EN_TERRENO
+            - COMPLETADA
+
+
+    AuditEvent:
+      type: object
+      properties:
+
+        id:
+          type: string
+          format: uuid
+
+        requestId:
+          type: string
+          format: uuid
+
+        eventType:
+          type: string
+
+        actorId:
+          type: string
+
+        message:
+          type: string
+
+        timestamp:
+          type: string
+          format: date-time
+
+
+    KpiResponse:
+      type: object
+      properties:
+
+        totalRequests:
+          type: integer
+
+        ingresados:
+          type: integer
+
+        enGestion:
+          type: integer
+
+        enTerreno:
+          type: integer
+
+        resueltos:
+          type: integer
+
+        rechazados:
+          type: integer
+
+
+    RequestsByStatusResponse:
+      type: object
+      properties:
+
+        status:
+          type: string
+
+        total:
+          type: integer
