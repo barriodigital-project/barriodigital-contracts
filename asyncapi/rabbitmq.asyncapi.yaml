@@ -1,0 +1,103 @@
+asyncapi: 2.6.0
+
+info:
+  title: BarrioDigital RabbitMQ API
+  version: 1.0.0
+
+servers:
+  local:
+    url: localhost:5672
+    protocol: amqp
+
+channels:
+
+  q.cmd.notification:
+
+    publish:
+      summary: Publicar tarea de notificación
+      message:
+        $ref: '#/components/messages/NotificationCommand'
+
+
+  q.cmd.crew:
+
+    publish:
+      summary: Publicar ticket o aviso para cuadrilla
+      message:
+        $ref: '#/components/messages/CrewCommand'
+
+
+components:
+
+  messages:
+
+    NotificationCommand:
+      payload:
+        $ref: '#/components/schemas/NotificationCommandPayload'
+
+    CrewCommand:
+      payload:
+        $ref: '#/components/schemas/CrewCommandPayload'
+
+
+  schemas:
+
+    NotificationCommandPayload:
+      type: object
+      required:
+        - requestId
+        - type
+        - message
+        - timestamp
+
+      properties:
+        requestId:
+          type: string
+          format: uuid
+
+        type:
+          type: string
+          enum:
+            - REQUEST_CREATED
+            - REQUEST_ADMITTED
+            - REQUEST_RESOLVED
+            - REQUEST_REJECTED
+
+        recipient:
+          type: string
+
+        message:
+          type: string
+
+        timestamp:
+          type: string
+          format: date-time
+
+
+    CrewCommandPayload:
+      type: object
+      required:
+        - requestId
+        - crewId
+        - message
+        - timestamp
+
+      properties:
+        requestId:
+          type: string
+          format: uuid
+
+        crewId:
+          type: string
+          format: uuid
+
+        message:
+          type: string
+
+        scheduledAt:
+          type: string
+          format: date-time
+
+        timestamp:
+          type: string
+          format: date-time

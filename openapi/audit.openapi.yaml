@@ -1,0 +1,73 @@
+openapi: 3.0.3
+
+info:
+  title: BarrioDigital Audit API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8086
+
+paths:
+
+  /api/v1/audit/requests/{requestId}/timeline:
+
+    get:
+      summary: Obtener timeline de un trámite
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Timeline del trámite
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEvent'
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permisos
+        '404':
+          description: No se encontraron eventos
+        '500':
+          description: Error interno
+
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        requestId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        actorId:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

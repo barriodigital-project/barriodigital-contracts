@@ -1,0 +1,64 @@
+asyncapi: 2.6.0
+
+info:
+  title: BarrioDigital Kafka API
+  version: 1.0.0
+
+servers:
+  local:
+    url: localhost:9092
+    protocol: kafka
+
+channels:
+
+  requests.events:
+
+    publish:
+      summary: Publicar evento de trámite
+      message:
+        $ref: '#/components/messages/RequestEvent'
+
+
+components:
+
+  messages:
+
+    RequestEvent:
+      payload:
+        $ref: '#/components/schemas/RequestEventPayload'
+
+
+  schemas:
+
+    RequestEventPayload:
+      type: object
+      required:
+        - requestId
+        - procedureTypeId
+        - type
+        - timestamp
+
+      properties:
+
+        requestId:
+          type: string
+          format: uuid
+
+        procedureTypeId:
+          type: string
+          format: uuid
+
+        type:
+          type: string
+          enum:
+            - REQUEST_CREATED
+            - REQUEST_ADMITTED
+            - REQUEST_RESOLVED
+            - REQUEST_REJECTED
+
+        actorId:
+          type: string
+
+        timestamp:
+          type: string
+          format: date-time
